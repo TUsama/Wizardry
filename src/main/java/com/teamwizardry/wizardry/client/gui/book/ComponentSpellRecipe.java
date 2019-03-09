@@ -2,10 +2,10 @@ package com.teamwizardry.wizardry.client.gui.book;
 
 import com.google.common.collect.Lists;
 import com.teamwizardry.librarianlib.core.LibrarianLib;
+import com.teamwizardry.librarianlib.features.gui.component.GuiComponent;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentSprite;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentStack;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentText;
-import com.teamwizardry.librarianlib.features.gui.components.ComponentVoid;
 import com.teamwizardry.librarianlib.features.gui.provided.book.IBookGui;
 import com.teamwizardry.librarianlib.features.gui.provided.book.context.Bookmark;
 import com.teamwizardry.librarianlib.features.gui.provided.book.context.PaginationContext;
@@ -110,7 +110,7 @@ public class ComponentSpellRecipe implements IBookElement {
 
 		if (count != 0) pageFromString(book, contexts, pageChunk);
 
-		Consumer<ComponentVoid> applier = component -> {};
+		Consumer<GuiComponent> applier = component -> {};
 
 		for (int i = 0; i < spellItems.size(); i++) {
 			ItemStack stack = spellItems.get(i);
@@ -118,21 +118,21 @@ public class ComponentSpellRecipe implements IBookElement {
 			int index = i;
 			applier = applier.andThen(component -> {
 				ComponentStack componentStack = new ComponentStack((index % 4) * 32, (index / 4) * 16);
-				componentStack.getStack().setValue(stack);
+				componentStack.setStack(stack);
 				component.add(componentStack);
 
 				if (index != spellItems.size() - 1 && (index % 4) < 3) {
 					ComponentSprite nextItem = new ComponentSprite(book.getHomeSprite(), 32 + (index % 4) * 32, (index / 4) * 16 + 13, 16, 8);
-					nextItem.getColor().setValue(book.getBook().getHighlightColor());
-					nextItem.getTransform().setRotate(Math.toRadians(180));
+					nextItem.setColor(book.getBook().getHighlightColor());
+					nextItem.setRotation(Math.toRadians(180));
 					component.add(nextItem);
 				}
 			});
 
 			if ((index / 4) >= 9) {
-				Consumer<ComponentVoid> spellApplier = applier;
+				Consumer<GuiComponent> spellApplier = applier;
 				contexts.add(new PaginationContext(() -> {
-					ComponentVoid component = new ComponentVoid(16, 16,
+					GuiComponent component = new GuiComponent(16, 16,
 							book.getMainBookComponent().getSize().getXi() - 32,
 							book.getMainBookComponent().getSize().getYi() - 32);
 					spellApplier.accept(component);
@@ -143,9 +143,9 @@ public class ComponentSpellRecipe implements IBookElement {
 			}
 		}
 
-		Consumer<ComponentVoid> spellApplier = applier;
+		Consumer<GuiComponent> spellApplier = applier;
 		contexts.add(new PaginationContext(() -> {
-			ComponentVoid component = new ComponentVoid(16, 16,
+			GuiComponent component = new GuiComponent(16, 16,
 					book.getMainBookComponent().getSize().getXi() - 32,
 					book.getMainBookComponent().getSize().getYi() - 32);
 			spellApplier.accept(component);
@@ -158,10 +158,10 @@ public class ComponentSpellRecipe implements IBookElement {
 	private static void pageFromString(GuiBook book, List<PaginationContext> contexts, StringBuilder page) {
 		contexts.add(new PaginationContext(() -> {
 			ComponentText spellStructureText = new ComponentText(16, 16, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
-			spellStructureText.getUnicode().setValue(true);
-			spellStructureText.getEnableUnicodeBidi().setValue(false);
-			spellStructureText.getText().setValue(page.toString());
-			spellStructureText.getWrap().setValue(book.getMainBookComponent().getSize().getXi() - 32);
+			spellStructureText.setUnicode(true);
+			spellStructureText.setEnableUnicodeBidi(false);
+			spellStructureText.setText(page.toString());
+			spellStructureText.setWrap(book.getMainBookComponent().getSize().getXi() - 32);
 			return spellStructureText;
 		}));
 	}

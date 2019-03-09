@@ -26,11 +26,11 @@ import net.minecraftforge.fml.relauncher.Side;
 @Mod.EventBusSubscriber(modid = Wizardry.MODID, value = Side.CLIENT)
 public class HudRenderer {
 
-	private static final Texture HUD_TEXTURE = new Texture(new ResourceLocation(Wizardry.MODID, "textures/gui/hud.png"));
-	private static final Sprite emptyManaBar = HUD_TEXTURE.getSprite("mana_empty", 101, 5);
-	private static final Sprite fullManaBar = HUD_TEXTURE.getSprite("mana_full", 101, 5);
-	private static final Sprite emptyBurnoutBar = HUD_TEXTURE.getSprite("burnout_empty", 101, 5);
-	private static final Sprite fullBurnoutBar = HUD_TEXTURE.getSprite("burnout_full", 101, 5);
+	private static final Texture HUD_TEXTURE = new Texture(new ResourceLocation(Wizardry.MODID, "textures/gui/hud.png"), 256, 256);
+	private static final Sprite emptyManaBar = HUD_TEXTURE.getSprite("mana_empty");
+	private static final Sprite fullManaBar = HUD_TEXTURE.getSprite("mana_full");
+	private static final Sprite emptyBurnoutBar = HUD_TEXTURE.getSprite("burnout_empty");
+	private static final Sprite fullBurnoutBar = HUD_TEXTURE.getSprite("burnout_full");
 
 	@SubscribeEvent
 	public static void renderHud(Post event) {
@@ -66,13 +66,13 @@ public class HudRenderer {
 				int visualManaLength = 0;
 				if (mana > 0)
 					visualManaLength = (int) (((mana * 100) / maxMana) % 101);
-				fullManaBar.drawClipped(ClientTickHandler.getTicks(), right, top, visualManaLength, 5);
+				fullManaBar.draw(ClientTickHandler.getTicks(), right, top, visualManaLength, 5);
 
 				GlStateManager.color(1.0F, 1.0F, 1.0F);
 				int visualBurnoutLength = 0;
 				if (burnout > 0)
 					visualBurnoutLength = (int) (((burnout * 100) / maxBurnout) % 101);
-				fullBurnoutBar.drawClipped(ClientTickHandler.getTicks(), right, top + 6, visualBurnoutLength, 5);
+				fullBurnoutBar.draw(ClientTickHandler.getTicks(), right, top + 6, visualBurnoutLength, 5);
 				GlStateManager.popMatrix();
 
 			}

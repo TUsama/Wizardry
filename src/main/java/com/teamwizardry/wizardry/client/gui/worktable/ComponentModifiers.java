@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ComponentModifiers extends GuiComponent {
 
@@ -39,7 +39,7 @@ public class ComponentModifiers extends GuiComponent {
 		super(384, 127, 80, 81);
 		this.worktable = worktable;
 
-		clipping.setClipToBounds(true);
+		setClipToBounds(true);
 
 		refresh();
 
@@ -57,7 +57,7 @@ public class ComponentModifiers extends GuiComponent {
 	}
 
 	public void set() {
-		List<GuiComponent> children = new ArrayList<>(getChildren());
+		List<GuiComponent> children = new ArrayList<>(getSubComponents());
 
 		int childrenSize = children.size(); // units: none (modifier)
 
@@ -75,7 +75,7 @@ public class ComponentModifiers extends GuiComponent {
 			animPlate.setFrom(lengthToTravel - PIXELS_PER_BAR); // units: pixels
 			animPlate.setTo(-PIXELS_PER_BAR); // units: pixels
 			animPlate.setDuration(slideDuration); // units: ticks
-			animPlate.setCompletion(bar::invalidate);
+			animPlate.setCompletion(bar::removeFromParent);
 
 			add(new ScheduledEventAnimation(waitDuration, () -> add(animPlate)));
 		}
@@ -118,15 +118,15 @@ public class ComponentModifiers extends GuiComponent {
 				ModuleInstanceModifier modifier = modifiers[i];
 
 				ComponentRect bar = new ComponentRect(0, 0, getSize().getXi(), PIXELS_PER_BAR);
-				bar.getColor().setValue(new Color(0x80000000, true));
+				bar.setColor(new Color(0x80000000, true));
 
 				TableModule tableModifier = new TableModule(worktable, modifier, false, true);
 				tableModifier.setEnableTooltip(true);
-				tableModifier.getTransform().setTranslateZ(80);
+				tableModifier.setTranslateZ(80);
 				bar.add(tableModifier);
 
 				ComponentText text = new ComponentText(20, 4, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
-				text.getText().setValue(TextFormatting.GREEN + modifier.getShortHandName());
+				text.setText(TextFormatting.GREEN + modifier.getShortHandName());
 				bar.add(text);
 
 				bar.setVisible(true);
@@ -138,7 +138,7 @@ public class ComponentModifiers extends GuiComponent {
 				animPlate.setCompletion(() -> Minecraft.getMinecraft().player.playSound(ModSounds.WHOOSH, 1f, 1f));
 				add(animPlate);
 
-				bar.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+				bar.getTooltip_im().set((Supplier<List<String>>) () -> {
 					List<String> txt = new ArrayList<>();
 
 					if (worktable.animationPlaying || tableModifier.getMouseOver()) return txt;
@@ -150,25 +150,25 @@ public class ComponentModifiers extends GuiComponent {
 					return txt;
 				});
 
-				bar.BUS.hook(GuiComponentEvents.MouseInEvent.class, event -> {
-					bar.getColor().setValue(new Color(0x66000000, true));
+				bar.BUS.hook(GuiComponentEvents.MouseEnterEvent.class, event -> {
+					bar.setColor(new Color(0x66000000, true));
 				});
-				bar.BUS.hook(GuiComponentEvents.MouseOutEvent.class, event -> {
-					bar.getColor().setValue(new Color(0x80000000, true));
+				bar.BUS.hook(GuiComponentEvents.MouseLeaveEvent.class, event -> {
+					bar.setColor(new Color(0x80000000, true));
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-					if (event.component.getMouseOver()) {
-						bar.getColor().setValue(new Color(0x4D000000, true));
+					if (bar.getMouseOver()) {
+						bar.setColor(new Color(0x4D000000, true));
 					}
 				});
 				bar.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-					if (event.component.getMouseOver()) {
-						bar.getColor().setValue(new Color(0x80000000, true));
+					if (bar.getMouseOver()) {
+						bar.setColor(new Color(0x80000000, true));
 					}
 				});
 
 				bar.BUS.hook(GuiComponentEvents.MouseClickEvent.class, (event) -> {
-					if (!event.component.getMouseOver()) return;
+					if (!bar.getMouseOver()) return;
 					if (worktable.selectedModule == null) return;
 
 					int j = worktable.selectedModule.hasData(Integer.class, modifier.getSubModuleID()) ? worktable.selectedModule.getData(Integer.class, modifier.getSubModuleID()) : 0;
@@ -200,11 +200,11 @@ public class ComponentModifiers extends GuiComponent {
 					if (status == -1) return;
 
 					TableModule fakePlate = new TableModule(worktable, modifier, false, true);
-					fakePlate.getTransform().setTranslateZ(80);
-					worktable.getMainComponents().add(fakePlate);
+					fakePlate.setTranslateZ(80);
+					worktable.getMain().add(fakePlate);
 
-					Vec2d from = tableModifier.thisPosToOtherContext(worktable.getMainComponents());
-					Vec2d to = worktable.selectedModule.thisPosToOtherContext(worktable.getMainComponents())
+					Vec2d from = tableModifier.convertPointTo(Vec2d.ZERO, worktable.getMain());
+					Vec2d to = worktable.selectedModule.convertPointTo(Vec2d.ZERO, worktable.getMain())
 							.add(worktable.selectedModule.getSize().sub(tableModifier.getSize()).mul(0.5f));
 
 					KeyframeAnimation<TableModule> anim = new KeyframeAnimation<>(fakePlate, "pos");
@@ -227,9 +227,9 @@ public class ComponentModifiers extends GuiComponent {
 						});
 					}
 
-					anim.setCompletion(fakePlate::invalidate);
+					anim.setCompletion(fakePlate::removeFromParent);
 
-					worktable.getMainComponents().add(anim);
+					worktable.getMain().add(anim);
 				});
 
 				add(bar);
@@ -240,10 +240,5 @@ public class ComponentModifiers extends GuiComponent {
 			add(new ScheduledEventAnimation(SLIDE_IN_DURATION + SPACER_DURATION, begin));
 		else
 			begin.run();
-	}
-
-	@Override
-	public void drawComponent(@Nonnull Vec2d mousePos, float partialTicks) {
-
 	}
 }

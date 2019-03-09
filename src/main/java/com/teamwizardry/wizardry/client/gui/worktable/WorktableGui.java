@@ -12,7 +12,6 @@ import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentRect;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentSprite;
 import com.teamwizardry.librarianlib.features.gui.components.ComponentText;
-import com.teamwizardry.librarianlib.features.gui.components.ComponentVoid;
 import com.teamwizardry.librarianlib.features.gui.mixin.DragMixin;
 import com.teamwizardry.librarianlib.features.helpers.ItemNBTHelper;
 import com.teamwizardry.librarianlib.features.math.Vec2d;
@@ -51,6 +50,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Created by Demoniaque on 6/17/2016.
@@ -76,7 +76,7 @@ public class WorktableGui extends GuiBase {
 	static final Sprite BOOK_COVER_ICON = new Sprite(new ResourceLocation(Wizardry.MODID, "textures/gui/worktable/book_cover.png"));
 
 	final ComponentModifiers modifiers;
-	final ComponentVoid paper;
+	final GuiComponent paper;
 	final ComponentText toast;
 	@Nullable
 	public TableModule selectedModule = null;
@@ -92,29 +92,25 @@ public class WorktableGui extends GuiBase {
 	private final BlockPos pos;
 
 	public WorktableGui(@Nonnull BlockPos pos) {
-		super(480, 224);
+		this.getMain().setSize(new Vec2d(480, 224));
 		this.pos = pos;
 
-		// GRAY OUT BACKGROUND
-		ComponentRect grayBackground = new ComponentRect(0, 0, 40000, 40000);
-		grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, 0.8f));
-		grayBackground.getTransform().setTranslateZ(-20);
-		getFullscreenComponents().add(grayBackground);
+		this.setUseDefaultBackground(true);
 
 		// TABLE
 		tableComponent = new ComponentSprite(TABLE_SPRITE, 0, 0, 480, 224);
-		getMainComponents().add(tableComponent);
+		getMain().add(tableComponent);
 
 		// PAPER PLATE
-		paper = new ComponentVoid(181, 22, 180, 184);
+		paper = new GuiComponent(181, 22, 180, 184);
 		tableComponent.add(paper);
 
 		// --- TOAST BOX --- //
 		toast = new ComponentText(384, 56, ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.TOP);
 		toast.setSize(new Vec2d(80, 63).mul(2));
-		toast.clipping.setClipToBounds(true);
-		toast.getTransform().setScale(0.5f);
-		toast.getWrap().setValue(160);
+		toast.setClipToBounds(true);
+		toast.setScale(0.5f);
+		toast.setWrap(160);
 		tableComponent.add(toast);
 
 		setCodexToastMessage();
@@ -122,8 +118,8 @@ public class WorktableGui extends GuiBase {
 
 		toast.BUS.hook(GuiComponentEvents.ComponentTickEvent.class, event -> {
 			if (!bookWarnRevised && !hadBook && Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
-				toast.getColor().setValue(Color.GREEN);
-				toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
+				toast.setColor(Color.GREEN);
+				toast.setText(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
 				bookWarnRevised = true;
 			}
 		});
@@ -162,7 +158,7 @@ public class WorktableGui extends GuiBase {
 			ComponentSprite sprite = new ComponentSprite(SAVE_ICON, (buttonWidth / 2) - (iconSize / 2), (buttonHeight / 2) - (iconSize / 2), iconSize, iconSize);
 			save.add(sprite);
 
-			save.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			save.getTooltip_im().set((Supplier<List<String>>) () -> {
 				List<String> txt = new ArrayList<>();
 
 				if (!animationPlaying) {
@@ -184,19 +180,19 @@ public class WorktableGui extends GuiBase {
 				if (!canBeSaved || animationPlaying || !Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
 					save.setSprite(BUTTON_SHORT_PRESSED);
 				} else {
-					if (event.component.getMouseOver())
+					if (save.getMouseOver())
 						save.setSprite(BUTTON_SHORT_HIGHLIGHTED);
 					else save.setSprite(BUTTON_SHORT_NORMAL);
 				}
 			});
 
 			save.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && save.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 			});
 
 			save.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && save.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_OUT, 1f, 1f);
 			});
 
@@ -212,7 +208,6 @@ public class WorktableGui extends GuiBase {
 					commonModules.add(lastCommonModule);
 
 					while (lastModule != null) {
-						if (lastModule.isInvalid()) continue;
 						chain.add(lastModule.getModule());
 
 						if (lastModule != head) {
@@ -243,16 +238,14 @@ public class WorktableGui extends GuiBase {
 				canBeSaved = true;
 
 				primary:
-				for (GuiComponent paperComponent : paper.getChildren()) {
+				for (GuiComponent paperComponent : paper.getSubComponents()) {
 					if (!(paperComponent instanceof TableModule)) continue;
 					TableModule module = (TableModule) paperComponent;
-					if (module.isInvalid()) continue;
 
 					if (module.getLinksTo() == null) {
-						for (GuiComponent subPaperComponent : paper.getChildren()) {
+						for (GuiComponent subPaperComponent : paper.getSubComponents()) {
 							if (!(subPaperComponent instanceof TableModule)) continue;
 							TableModule subModule = (TableModule) subPaperComponent;
-							if (subModule.isInvalid()) continue;
 							if (subModule == module) continue;
 
 							if (subModule.getLinksTo() == module) {
@@ -272,17 +265,15 @@ public class WorktableGui extends GuiBase {
 				}
 
 				primary:
-				for (GuiComponent paperComponent : paper.getChildren()) {
+				for (GuiComponent paperComponent : paper.getSubComponents()) {
 					if (!(paperComponent instanceof TableModule)) continue;
 					TableModule module = (TableModule) paperComponent;
-					if (module.isInvalid()) continue;
 
 					if (module.getModule().getModuleType() != ModuleType.SHAPE) {
 
-						for (GuiComponent subPaperComponent : paper.getChildren()) {
+						for (GuiComponent subPaperComponent : paper.getSubComponents()) {
 							if (!(subPaperComponent instanceof TableModule)) continue;
 							TableModule subModule = (TableModule) subPaperComponent;
-							if (subModule.isInvalid()) continue;
 							if (subModule == module) continue;
 
 							if (subModule.getLinksTo() == module) continue primary;
@@ -362,7 +353,7 @@ public class WorktableGui extends GuiBase {
 
 				playSaveAnimation(null);
 			});
-			getMainComponents().add(save);
+			getMain().add(save);
 		}
 		// --- SAVE BUTTON --- //
 
@@ -375,13 +366,13 @@ public class WorktableGui extends GuiBase {
 			int fitWidth = load.getSize().getXi() - 16;
 
 			ComponentText textSave = new ComponentText(16 + (int) (fitWidth / 2.0 - stringWidth / 2.0), (load.getSize().getYi() / 2), ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.MIDDLE);
-			textSave.getText().setValue(saveStr);
+			textSave.setText(saveStr);
 			//	load.add(textSave);
 
 			ComponentSprite sprite = new ComponentSprite(BOOK_COVER_ICON, (buttonWidth / 2) - (iconSize / 2), (buttonHeight / 2) - (iconSize / 2), iconSize, iconSize);
 			load.add(sprite);
 
-			load.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			load.getTooltip_im().set((Supplier<List<String>>) () -> {
 				List<String> txt = new ArrayList<>();
 
 				if (!animationPlaying) {
@@ -395,19 +386,19 @@ public class WorktableGui extends GuiBase {
 				if (animationPlaying) {
 					load.setSprite(BUTTON_SHORT_PRESSED);
 				} else {
-					if (event.component.getMouseOver())
+					if (load.getMouseOver())
 						load.setSprite(BUTTON_SHORT_HIGHLIGHTED);
 					else load.setSprite(BUTTON_SHORT_NORMAL);
 				}
 			});
 
 			load.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && load.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 			});
 
 			load.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && load.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_OUT, 1f, 1f);
 			});
 
@@ -439,7 +430,7 @@ public class WorktableGui extends GuiBase {
 				}
 
 				boolean isEmpty = true;
-				for (GuiComponent child : paper.getChildren()) {
+				for (GuiComponent child : paper.getSubComponents()) {
 					if (child instanceof TableModule) {
 						isEmpty = false;
 						break;
@@ -459,7 +450,7 @@ public class WorktableGui extends GuiBase {
 
 				setToastMessageNoHeader(LibrarianLib.PROXY.translate("wizardry.table.spell_loaded"), Color.GREEN);
 			});
-			getMainComponents().add(load);
+			getMain().add(load);
 		}
 		// --- LOAD BUTTON --- //
 
@@ -472,13 +463,13 @@ public class WorktableGui extends GuiBase {
 			int fitWidth = clear.getSize().getXi() - 16;
 
 			ComponentText textSave = new ComponentText(16 + (int) (fitWidth / 2.0 - stringWidth / 2.0), (clear.getSize().getYi() / 2), ComponentText.TextAlignH.LEFT, ComponentText.TextAlignV.MIDDLE);
-			textSave.getText().setValue(saveStr);
+			textSave.setText(saveStr);
 			//	clear.add(textSave);
 
 			ComponentSprite sprite = new ComponentSprite(BROOM_ICON, (buttonWidth / 2) - (iconSize / 2), (buttonHeight / 2) - (iconSize / 2), iconSize, iconSize);
 			clear.add(sprite);
 
-			clear.render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			clear.getTooltip_im().set((Supplier<List<String>>) () -> {
 				List<String> txt = new ArrayList<>();
 
 				if (!animationPlaying) {
@@ -492,19 +483,19 @@ public class WorktableGui extends GuiBase {
 				if (animationPlaying) {
 					clear.setSprite(BUTTON_SHORT_PRESSED);
 				} else {
-					if (event.component.getMouseOver())
+					if (clear.getMouseOver())
 						clear.setSprite(BUTTON_SHORT_HIGHLIGHTED);
 					else clear.setSprite(BUTTON_SHORT_NORMAL);
 				}
 			});
 
 			clear.BUS.hook(GuiComponentEvents.MouseDownEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && clear.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 			});
 
 			clear.BUS.hook(GuiComponentEvents.MouseUpEvent.class, event -> {
-				if (!animationPlaying && event.component.getMouseOver())
+				if (!animationPlaying && clear.getMouseOver())
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_OUT, 1f, 1f);
 			});
 
@@ -518,7 +509,7 @@ public class WorktableGui extends GuiBase {
 
 				setToastMessageNoHeader(LibrarianLib.PROXY.translate("wizardry.table.paper_cleared"), Color.GREEN);
 			});
-			getMainComponents().add(clear);
+			getMain().add(clear);
 		}
 		// --- CLEAR BUTTON --- //
 
@@ -543,7 +534,7 @@ public class WorktableGui extends GuiBase {
 						lastModule.textRadius = 0;
 						paper.add(lastModule);
 						DragMixin drag = new DragMixin(lastModule, vec2d -> vec2d);
-						drag.setDragOffset(new Vec2d(6, 6));
+						drag.setClickedPoint(new Vec2d(6, 6));
 
 						for (ModuleInstanceModifier modifier : commonModule.modifiers.keySet()) {
 							lastModule.setData(Integer.class, modifier.getSubModuleID(), commonModule.modifiers.get(modifier));
@@ -599,12 +590,12 @@ public class WorktableGui extends GuiBase {
 	public void setCodexToastMessage() {
 		if (!Minecraft.getMinecraft().player.inventory.hasItemStack(new ItemStack(ModItems.BOOK))) {
 			hadBook = false;
-			toast.getColor().setValue(Color.RED);
-			toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.no_codex_found"));
+			toast.setColor(Color.RED);
+			toast.setText(LibrarianLib.PROXY.translate("wizardry.table.no_codex_found"));
 		} else {
 			hadBook = true;
-			toast.getColor().setValue(Color.GREEN);
-			toast.getText().setValue(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
+			toast.setColor(Color.GREEN);
+			toast.setText(LibrarianLib.PROXY.translate("wizardry.table.codex_found"));
 		}
 	}
 
@@ -675,33 +666,30 @@ public class WorktableGui extends GuiBase {
 	}
 
 	public Pair<String, Color> getToastMessage() {
-		String text = toast.getText().getValue(toast);
-		Color color = toast.getColor().getValue(toast);
+		String text = toast.getText();
+		Color color = toast.getColor();
 		return new Pair<>(text, color);
 	}
 
 	public void setToastMessage(String text, Color color) {
-		toast.getText().setValue(getToastHeader() + text);
-		toast.getColor().setValue(color);
+		toast.setText(getToastHeader() + text);
+		toast.setColor(color);
 	}
 
 	public void setToastMessageNoHeader(String text, Color color) {
-		toast.getText().setValue(text);
-		toast.getColor().setValue(color);
+		toast.setText(text);
+		toast.setColor(color);
 	}
 
 	private Set<TableModule> getSpellHeads() {
 		Set<TableModule> set = new HashSet<>();
 
-		for (GuiComponent child : paper.getChildren()) {
+		for (GuiComponent child : paper.getSubComponents()) {
 			if (!(child instanceof TableModule)) continue;
 			TableModule childModule = (TableModule) child;
 
-			if (childModule.isInvalid()) continue;
-
 			boolean linkedToSomehow = false;
-			for (GuiComponent subChild : paper.getChildren()) {
-				if (subChild.isInvalid()) continue;
+			for (GuiComponent subChild : paper.getSubComponents()) {
 				if (!(subChild instanceof TableModule)) continue;
 				TableModule subChildModule = (TableModule) subChild;
 				if (subChildModule == childModule) continue;
@@ -752,20 +740,20 @@ public class WorktableGui extends GuiBase {
 		}
 
 		Runnable runnable = () -> {
-			ComponentVoid fakePaper = new ComponentVoid(180, 19, 180, 188);
-			fakePaper.getTransform().setTranslateZ(100);
-			getMainComponents().add(fakePaper);
+			GuiComponent fakePaper = new GuiComponent(180, 19, 180, 188);
+			fakePaper.setTranslateZ(100);
+			getMain().add(fakePaper);
 
-			ComponentVoid bookIconMask = new ComponentVoid(0, -100, 180, 100);
+			GuiComponent bookIconMask = new GuiComponent(0, -100, 180, 100);
 			fakePaper.add(bookIconMask);
 
 			// GRAY BACKGROUND
 			{
 				ComponentRect grayBackground = new ComponentRect(0, 0, tableComponent.getSize().getXi(), tableComponent.getSize().getYi());
-				grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, 0f));
-				grayBackground.getTransform().setTranslateZ(200);
+				grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, 0f));
+				grayBackground.setTranslateZ(200);
 				grayBackground.BUS.hook(GuiComponentEvents.ComponentTickEvent.class, event -> {
-					grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
+					grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
 				});
 				tableComponent.add(grayBackground);
 
@@ -777,8 +765,8 @@ public class WorktableGui extends GuiBase {
 						new Keyframe(0.7f, 0.65f, Easing.easeInOutQuint),
 						new Keyframe(1f, 0f, Easing.easeInOutQuint)
 				});
-				anim.setCompletion(grayBackground::invalidate);
-				getMainComponents().add(anim);
+				anim.setCompletion(grayBackground::removeFromParent);
+				getMain().add(anim);
 			}
 
 			// BOOK PEAK ANIMATION
@@ -786,9 +774,9 @@ public class WorktableGui extends GuiBase {
 				ComponentSprite bookIcon = new ComponentSprite(BOOK_ICON, (int) ((bookIconMask.getSize().getX() / 2.0) - 16), (int) (bookIconMask.getSize().getY() + 50), 32, 32);
 				bookIconMask.add(bookIcon);
 
-				bookIcon.getTransform().setTranslateZ(200);
-				bookIconMask.clipping.setClipToBounds(true);
-				bookIconMask.getTransform().setTranslateZ(250);
+				bookIcon.setTranslateZ(200);
+				bookIconMask.setClipToBounds(true);
+				bookIconMask.setTranslateZ(250);
 
 				final Vec2d originalPos = bookIcon.getPos();
 				KeyframeAnimation<ComponentSprite> anim = new KeyframeAnimation<>(bookIcon, "pos.y");
@@ -802,7 +790,7 @@ public class WorktableGui extends GuiBase {
 				});
 
 				anim.setCompletion(() -> {
-					fakePaper.invalidate();
+					fakePaper.removeFromParent();
 
 					if (finish == null)
 						animationPlaying = false;
@@ -822,14 +810,14 @@ public class WorktableGui extends GuiBase {
 
 				HashMap<TableModule, UUID> links = new HashMap<>();
 
-				for (GuiComponent component : paper.getChildren()) {
+				for (GuiComponent component : paper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule tableModule = (TableModule) component;
 
 					TableModule fakeModule = new TableModule(this, tableModule.getModule(), false, true);
 					fakeModule.setPos(tableModule.getPos());
 					for (Object tag : tableModule.getTagList()) fakeModule.addTag(tag);
-					fakeModule.getTransform().setTranslateZ(230);
+					fakeModule.setTranslateZ(230);
 					fakePaper.add(fakeModule);
 
 					for (ModuleInstance module : ModuleRegistry.INSTANCE.getModules(ModuleType.MODIFIER)) {
@@ -857,7 +845,7 @@ public class WorktableGui extends GuiBase {
 
 					if (linkTo == null) continue;
 
-					for (GuiComponent child : fakePaper.getChildren()) {
+					for (GuiComponent child : fakePaper.getSubComponents()) {
 						UUID uuid = child.getData(UUID.class, "uuid");
 						if (uuid == null) continue;
 
@@ -871,7 +859,7 @@ public class WorktableGui extends GuiBase {
 					}
 				}
 
-				for (GuiComponent component : fakePaper.getChildren()) {
+				for (GuiComponent component : fakePaper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule fakeModule = (TableModule) component;
 
@@ -913,7 +901,7 @@ public class WorktableGui extends GuiBase {
 					animText.setEasing(Easing.easeOutCubic);
 					animText.setTo(0);
 
-					animY.setCompletion(fakeModule::invalidate);
+					getMain().add(new ScheduledEventAnimation(100, () -> { fakeModule.removeFromParent(); }));
 
 					fakeModule.add(animX, animY, animSound1, animSound2, animRadius, animText);
 				}
@@ -922,7 +910,7 @@ public class WorktableGui extends GuiBase {
 
 		if (selectedModule != null) {
 			selectedModule = null;
-			getMainComponents().add(new ScheduledEventAnimation(5, runnable));
+			getMain().add(new ScheduledEventAnimation(5, runnable));
 		} else runnable.run();
 	}
 
@@ -955,7 +943,7 @@ public class WorktableGui extends GuiBase {
 				});
 				paper.add(animFinish);
 
-				for (GuiComponent component : paper.getChildren()) {
+				for (GuiComponent component : paper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule module = (TableModule) component;
 
@@ -995,9 +983,9 @@ public class WorktableGui extends GuiBase {
 					});
 
 					animY.setCompletion(() -> {
-						module.invalidate();
 						Minecraft.getMinecraft().player.playSound(ModSounds.ZOOM, 1f, 1f);
 					});
+					getMain().add(new ScheduledEventAnimation(100, () -> { module.removeFromParent(); }));
 
 					module.add(animX, animY, animSound1, animRadius, animText);
 				}
@@ -1006,7 +994,7 @@ public class WorktableGui extends GuiBase {
 
 		if (selectedModule != null) {
 			selectedModule = null;
-			getMainComponents().add(new ScheduledEventAnimation(5, runnable));
+			getMain().add(new ScheduledEventAnimation(5, runnable));
 		} else runnable.run();
 	}
 
@@ -1028,7 +1016,7 @@ public class WorktableGui extends GuiBase {
 			selectedModule.add(animPos);
 		}
 
-		ComponentVoid bookIconMask = new ComponentVoid(0, -100, 180, 100);
+		GuiComponent bookIconMask = new GuiComponent(0, -100, 180, 100);
 		paper.add(bookIconMask);
 
 		Vec2d bookOrigin = new Vec2d((bookIconMask.getSize().getX() / 2.0) - 8, -(bookIconMask.getSize().getY() / 2.0) - 4);
@@ -1045,7 +1033,7 @@ public class WorktableGui extends GuiBase {
 
 						paper.add(lastModule);
 						DragMixin drag = new DragMixin(lastModule, vec2d -> vec2d);
-						drag.setDragOffset(new Vec2d(6, 6));
+						drag.setClickedPoint(new Vec2d(6, 6));
 
 						lastModule.setData(Vec2d.class, "true_pos", commonModule.pos);
 
@@ -1067,13 +1055,13 @@ public class WorktableGui extends GuiBase {
 					}
 				}
 
-				for (GuiComponent component : paper.getChildren()) {
+				for (GuiComponent component : paper.getSubComponents()) {
 					if (!(component instanceof TableModule)) continue;
 					TableModule module = (TableModule) component;
 
 					Vec2d target = module.getData(Vec2d.class, "true_pos");
 					if (target == null) {
-						module.invalidate();
+						module.removeFromParent();
 						continue;
 					}
 
@@ -1127,10 +1115,10 @@ public class WorktableGui extends GuiBase {
 			// GRAY BACKGROUND
 			{
 				ComponentRect grayBackground = new ComponentRect(0, 0, tableComponent.getSize().getXi(), tableComponent.getSize().getYi());
-				grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, 0f));
-				grayBackground.getTransform().setTranslateZ(200);
+				grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, 0f));
+				grayBackground.setTranslateZ(200);
 				grayBackground.BUS.hook(GuiComponentEvents.ComponentTickEvent.class, event -> {
-					grayBackground.getColor().setValue(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
+					grayBackground.setColor(new Color(0.05f, 0.05f, 0.05f, backgroundAlpha));
 				});
 				//	tableComponent.add(grayBackground);
 
@@ -1142,7 +1130,7 @@ public class WorktableGui extends GuiBase {
 						new Keyframe(0.7f, 0.65f, Easing.easeInOutQuint),
 						new Keyframe(1f, 0f, Easing.easeInOutQuint)
 				});
-				anim.setCompletion(grayBackground::invalidate);
+				anim.setCompletion(grayBackground::removeFromParent);
 				//	getMainComponents().add(anim);
 			}
 
@@ -1151,9 +1139,9 @@ public class WorktableGui extends GuiBase {
 				ComponentSprite bookIcon = new ComponentSprite(BOOK_ICON, (int) ((bookIconMask.getSize().getX() / 2.0) - 16), (int) (bookIconMask.getSize().getY() + 50), 32, 32);
 				bookIconMask.add(bookIcon);
 
-				bookIcon.getTransform().setTranslateZ(200);
-				bookIconMask.clipping.setClipToBounds(true);
-				bookIconMask.getTransform().setTranslateZ(250);
+				bookIcon.setTranslateZ(200);
+				bookIconMask.setClipToBounds(true);
+				bookIconMask.setTranslateZ(250);
 
 				final Vec2d originalPos = bookIcon.getPos();
 				KeyframeAnimation<ComponentSprite> anim = new KeyframeAnimation<>(bookIcon, "pos.y");
@@ -1171,14 +1159,14 @@ public class WorktableGui extends GuiBase {
 					itemsRunnable.run();
 
 					ScheduledEventAnimation animFinish = new ScheduledEventAnimation(100, () -> {
-						bookIcon.invalidate();
+						bookIcon.removeFromParent();
 						if (finish == null)
 							animationPlaying = false;
 						else {
 							finish.run();
 						}
 					});
-					getMainComponents().add(animFinish);
+					getMain().add(animFinish);
 				});
 
 				bookIcon.add(anim, animSound);
@@ -1187,7 +1175,7 @@ public class WorktableGui extends GuiBase {
 
 		if (selectedModule != null) {
 			selectedModule = null;
-			getMainComponents().add(new ScheduledEventAnimation(5, runnable));
+			getMain().add(new ScheduledEventAnimation(5, runnable));
 		} else runnable.run();
 	}
 

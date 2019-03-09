@@ -8,7 +8,6 @@ import com.teamwizardry.librarianlib.features.eventbus.Event;
 import com.teamwizardry.librarianlib.features.gui.EnumMouseButton;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponent;
 import com.teamwizardry.librarianlib.features.gui.component.GuiComponentEvents;
-import com.teamwizardry.librarianlib.features.gui.components.ComponentVoid;
 import com.teamwizardry.librarianlib.features.gui.mixin.DragMixin;
 import com.teamwizardry.librarianlib.features.math.Vec2d;
 import com.teamwizardry.librarianlib.features.math.interpolate.position.InterpBezier2D;
@@ -40,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static com.teamwizardry.wizardry.client.gui.worktable.WorktableGui.*;
 
@@ -64,18 +64,18 @@ public class TableModule extends GuiComponent {
 	private Vec2d initialPos;
 
 	public TableModule(@Nonnull WorktableGui worktable, @Nonnull ModuleInstance module, boolean draggable, boolean benign) {
-		super(0, 0, PLATE.getWidth(), PLATE.getHeight());
+		super(0, 0, 16, 16);
 		this.worktable = worktable;
 		this.module = module;
 		this.draggable = draggable;
 		icon = new Sprite(module.getIconLocation());
 		this.benign = enableTooltip = benign;
 
-		initialPos = thisPosToOtherContext(null);
+		initialPos = Vec2d.ZERO;
 
-		ComponentVoid paper = worktable.paper;
+		GuiComponent paper = worktable.paper;
 
-		if (draggable) getTransform().setTranslateZ(30);
+		if (draggable) setTranslateZ(30);
 
 		if (!benign && draggable) {
 			setData(UUID.class, "uuid", UUID.randomUUID());
@@ -87,9 +87,9 @@ public class TableModule extends GuiComponent {
 				if (event.getButton() == EnumMouseButton.LEFT && getMouseOver()) {
 					Minecraft.getMinecraft().player.playSound(ModSounds.BUTTON_CLICK_IN, 1f, 1f);
 					TableModule item = new TableModule(this.worktable, this.module, true, false);
-					item.setPos(paper.otherPosToThisContext(event.component, event.getMousePos()));
+					item.setPos(paper.convertPointFrom(getMousePos(), this));
 					DragMixin drag = new DragMixin(item, vec2d -> vec2d);
-					drag.setDragOffset(new Vec2d(6, 6));
+					drag.setClickedPoint(new Vec2d(6, 6));
 					drag.setMouseDown(event.getButton());
 					paper.add(item);
 
@@ -106,7 +106,7 @@ public class TableModule extends GuiComponent {
 					setErrored(false);
 					deselect(this);
 				}
-				initialPos = event.component.thisPosToOtherContext(null);
+				initialPos = event.component.convertPointTo(Vec2d.ZERO, getRoot());
 				if (event.getButton() == EnumMouseButton.RIGHT) {
 					event.component.addTag("connecting");
 					Minecraft.getMinecraft().player.playSound(ModSounds.POP, 1f, 1f);
@@ -138,7 +138,7 @@ public class TableModule extends GuiComponent {
 					deselect(this);
 				}
 
-				Vec2d currentPos = event.component.thisPosToOtherContext(null);
+				Vec2d currentPos = event.component.convertPointTo(Vec2d.ZERO, getRoot());
 				if (event.getButton() == EnumMouseButton.LEFT && initialPos.squareDist(currentPos) < 0.1) {
 
 					if (worktable.selectedModule == this) {
@@ -169,7 +169,7 @@ public class TableModule extends GuiComponent {
 				if (!isInsidePaper) {
 					if (!event.component.hasTag("connecting")) {
 
-						for (GuiComponent paperComponent : paper.getChildren()) {
+						for (GuiComponent paperComponent : paper.getSubComponents()) {
 							if (paperComponent == event.component) continue;
 
 							if (!(paperComponent instanceof TableModule)) continue;
@@ -183,7 +183,7 @@ public class TableModule extends GuiComponent {
 						if (worktable.selectedModule == this) worktable.selectedModule = null;
 
 						Minecraft.getMinecraft().player.playSound(ModSounds.ZOOM, 1f, 1f);
-						event.component.invalidate();
+						event.component.removeFromParent();
 
 						if (event.component.hasTag("placed"))
 							worktable.setToastMessage("", Color.GREEN);
@@ -197,9 +197,9 @@ public class TableModule extends GuiComponent {
 				}
 
 				if (event.component.hasTag("connecting")) {
-					for (GuiComponent paperComponent : paper.getChildren()) {
+					for (GuiComponent paperComponent : paper.getSubComponents()) {
 						if (paperComponent == event.component) continue;
-						if (!paperComponent.geometry.getMouseOverNoOcclusion()) continue;
+						if (paperComponent.getMouseHit() == null) continue;
 
 						if (!(paperComponent instanceof TableModule)) continue;
 						TableModule linkTo = (TableModule) paperComponent;
@@ -219,7 +219,7 @@ public class TableModule extends GuiComponent {
 								linkTo.setLinksTo(null);
 							} else {
 								boolean linkedFrom = false;
-								for (GuiComponent component : paper.getChildren()) {
+								for (GuiComponent component : paper.getSubComponents()) {
 									if (!(component instanceof TableModule)) continue;
 									TableModule child = (TableModule) component;
 
@@ -266,11 +266,11 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign || enableTooltip)
-			render.getTooltip().func((Function<GuiComponent, List<String>>) t -> {
+			getTooltip_im().set((Supplier<List<String>>) () -> {
 				List<String> txt = new ArrayList<>();
 
 				if (worktable.animationPlaying) return txt;
-				if (t.hasTag("connecting")) return txt;
+				if (this.hasTag("connecting")) return txt;
 
 				txt.add(TextFormatting.GOLD + module.getReadableName());
 				if (GuiScreen.isShiftKeyDown()) {
@@ -284,7 +284,7 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign)
-			BUS.hook(GuiComponentEvents.MouseInEvent.class, event -> {
+			BUS.hook(GuiComponentEvents.MouseEnterEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (isErrored() || worktable.selectedModule == this) return;
 
@@ -292,7 +292,7 @@ public class TableModule extends GuiComponent {
 			});
 
 		if (!benign)
-			BUS.hook(GuiComponentEvents.MouseOutEvent.class, event -> {
+			BUS.hook(GuiComponentEvents.MouseLeaveEvent.class, event -> {
 				if (worktable.animationPlaying) return;
 				if (isErrored() || worktable.selectedModule == this) return;
 
@@ -445,8 +445,9 @@ public class TableModule extends GuiComponent {
 	}
 
 	@Override
-	public void drawComponent(@NotNull Vec2d mousePos, float partialTicks) {
-		super.drawComponent(mousePos, partialTicks);
+	public void draw(float partialTicks) {
+		super.draw(partialTicks);
+		if(getParent() == null) return;
 		GlStateManager.color(1f, 1f, 1f, 1f);
 		GlStateManager.enableAlpha();
 		GlStateManager.enableTexture2D();
@@ -457,10 +458,10 @@ public class TableModule extends GuiComponent {
 
 		GlStateManager.translate(0, 0, -20);
 		if (hasTag("connecting")) {
-			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), mousePos, getColorForModule(module.getModuleType()), Color.WHITE);
+			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), getMousePos(), getColorForModule(module.getModuleType()), Color.WHITE);
 		}
 		if (linksTo != null) {
-			Vec2d posTo = linksTo.thisPosToOtherContext(this);
+			Vec2d posTo = linksTo.convertPointTo(Vec2d.ZERO, this);
 			drawWire(pos.add(getSize().getX() / 2.0, getSize().getY() / 2.0), posTo.add(getSize().getX() / 2.0, getSize().getY() / 2.0), getColorForModule(module.getModuleType()), getColorForModule(linksTo.getModule().getModuleType()));
 		}
 

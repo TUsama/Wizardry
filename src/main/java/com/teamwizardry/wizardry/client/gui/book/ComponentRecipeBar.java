@@ -22,13 +22,13 @@ public class ComponentRecipeBar extends ComponentBookMark {
 
 		setBookmarkText(LibrarianLib.PROXY.translate("wizardry.book.spell_recipe_recipe"), book.getBook().getSearchTextColor(), -5);
 
-		BUS.hook(GuiComponentEvents.MouseInEvent.class, mouseInEvent -> {
+		BUS.hook(GuiComponentEvents.MouseEnterEvent.class, mouseInEvent -> {
 			if (!focused) {
 				slideOutShort();
 			}
 		});
 
-		BUS.hook(GuiComponentEvents.MouseOutEvent.class, mouseOutEvent -> {
+		BUS.hook(GuiComponentEvents.MouseLeaveEvent.class, mouseOutEvent -> {
 			if (!focused) {
 				slideIn();
 			}
