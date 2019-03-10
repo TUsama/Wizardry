@@ -160,10 +160,10 @@ public final class CapeHandler {
 						mass = 1 - t * 0.1F;
 						LinkResolver link = new LinkResolver();
 						if (y > 0) {
-							link.attach(points.get(x + (y - 1) * columns), scale, 2.0F + (1.95F - 2.0F) * t);
+							link.attach(points.get(x + (y - 1) * columns), scale, 2.00f, true);
 						}
 						if (x > 0) {
-							link.attach(points.get(points.size() - 1), scale * (1 + y / (float) height * 0.1F), 1);
+							link.attach(points.get(points.size() - 1), scale * (1 + y / (float) height * 0.1F), 1, false);
 						}
 						res.add(link);
 					}
@@ -488,8 +488,8 @@ public final class CapeHandler {
 		private static final class LinkResolver implements ConstraintResolver {
 			private final List<Link> constraints = Lists.newArrayList();
 
-			private LinkResolver attach(Point point, float length, float strength) {
-				constraints.add(new Link(point, length, strength));
+			private LinkResolver attach(Point point, float length, float strength, boolean hard) {
+				constraints.add(new Link(point, length, strength, hard));
 				return this;
 			}
 
@@ -509,10 +509,13 @@ public final class CapeHandler {
 
 				private final float strength;
 
-				private Link(Point dest, float length, float strength) {
+				private final boolean hard;
+
+				private Link(Point dest, float length, float strength, boolean hard) {
 					this.dest = dest;
 					this.length = length;
 					this.strength = strength;
+					this.hard = hard;
 				}
 
 				private void resolve(Point point) {
@@ -528,9 +531,11 @@ public final class CapeHandler {
 					point.posX -= px * point.invMass;
 					point.posY -= py * point.invMass;
 					point.posZ -= pz * point.invMass;
-					dest.posX += px * dest.invMass;
-					dest.posY += py * dest.invMass;
-					dest.posZ += pz * dest.invMass;
+					if(!hard) {
+						dest.posX += px * dest.invMass;
+						dest.posY += py * dest.invMass;
+						dest.posZ += pz * dest.invMass;
+					}
 				}
 			}
 		}
