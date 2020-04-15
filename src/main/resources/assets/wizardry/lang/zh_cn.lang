@@ -1,4 +1,4 @@
-jei.wizardry.category.mana_crafting=魔力合成
+jei.wizardry.category.mana_crafting=Mana Crafting
 
 tile.wizardry:crafting_plate.name=合成台
 tile.wizardry:magicians_worktable.name=铭文桌
@@ -104,6 +104,7 @@ item.wizardry:fairy_bell_aiming_mode=精灵铃铛[模式：瞄准精灵]
 item.wizardry:fairy_bell.status.deselected=精灵取消选择
 item.wizardry:fairy_bell.status.fairy_moving=精灵被选中。[模式：精灵移动]
 item.wizardry:fairy_bell.status.fairy_aiming=精灵被选中。[模式：精灵瞄准]
+item.wizardry:fairy_bell.status.linked_to_fairy=Fairy bound to this entity
 
 item.wizardry:glass_orb.fill.0.name=玻璃珠
 item.wizardry:mana_orb.fill.0.name=0% 魔力珠
@@ -369,6 +370,8 @@ wizardry.command.genstaff.usage=/wizardry genstaff
 
 wizardry.command.genpearl.usage=/wizardry genpearl
 
+wizardry.command.genmaxcape.usage=/wizardry genmaxcape
+
 wizardry.command.tptorikki.usage=/wizardry tptorikki
 
 wizardry.command.tpunderworld.usage=/wizardry tpunderworld
@@ -410,6 +413,7 @@ wizardry.table.load_desc=加载巫师宝典中最后一个法术。
 wizardry.table.clear_desc=清除纸上的所有法术构件。
 wizardry.table.save_desc=将法术配方存储到你的巫师宝典中。
 wizardry.table.save_error=你的物品栏里没有巫师宝典！把宝典放进你的物品栏才可以正确地保存法术配方。
+wizardry.table.no_component_error=A component was in your table that was removed from the mod! The table has been (mostly) cleared to prevent crashes.
 
 wizardry.book.shift_scroll=Shift滚轮来翻页
 wizardry.book.open_recipe_tab=打开配方选项卡查看更多细节
@@ -463,21 +467,88 @@ wizardry.book.steps.spell_creation.content5=法术在刚开始的时候都很弱
 wizardry.book.steps.spell_creation.content6=当你满意了你的法术后，点击右上方的 &o保存&r 按钮就会将你的法术配方输入到你的法典中。你会在你法典中看到一个新的书签，这个是有关你的法术构建是的配方。所以在你写法术的时候，确保你有带着你的法典。
 wizardry.book.steps.spell_creation.content7=现在你已经保存了你的法术，在书的书签里检查你的法术的配方。你会看到一列的物品，这些是你需要收集，然后&o&l按顺序&r丢进合成台里。 把你的魔力电池填充上魔力，然后丢入你的炫珠到合成台里，等待几分钟。你会看到魔力的爆发从你的环绕在合成平台的炫珠上。现在你已经有一颗灌注了法术的炫珠了。让它与空法杖在合成台里合成，然后你就可以用你的法杖去施展你的魔法啦！祝贺啦，我的朋友。你现在已经是一名巫师了。在你第一次使用魔法时，我开始当心那些小动物的安危了。
 
+wizardry.book.items_blocks.book.title=Spellforger's Codex
+wizardry.book.items_blocks.book.content0=The Spellforger’s Codex is the sum of my teachings to you, although it is a paltry shadow of the Akashic Record all Wizardry descends from. Simply throwing a book into mana will infuse it with Wisdom, connecting it to the source of knowledge through the angel blood. This book holds all secrets you shall need for the art of Wizardry, and provides blank pages for you to record your spellcraft. These pages will also tell you the ingredients for your spells. Simply copy your spell into the book from the Magician’s Worktable to have the recipe displayed on the pages.
+
 wizardry.book.items_blocks.devil_dust.title=恶魔尘
 wizardry.book.items_blocks.devil_dust.content0=&o恶魔尘是从红石粉纯化而来的，它用于魔法传导而不是电力传导。&r
-wizardry.book.items_blocks.devil_dust.content1=它是通过把红石丢到火焰里产生的。一会就会啸的一下飞出来这些地狱的粉末。
+
+wizardry.book.items_blocks.fairy_dust.title=Fairy Dust
+wizardry.book.items_blocks.fairy_dust.content0=Upon killing a fairy, found in the underworld, it will often leave behind some of its essence, in the form of fairy dust. This potent dust is a key ingredient in many magical reagents, such as sky dust, due to the link it has to the concept the fairy was created from.
+
+wizardry.book.items_blocks.sky_dust.title=Sky Dust
+wizardry.book.items_blocks.sky_dust.content0=Devil dust represents adhesion, so naturally, sky dust represents the conceptual opposite: repulsion. Sky dust is created by throwing fairy dust into fire, burning away the magic and leaving only the aimless freedom the fairy represents. By itself, it has negligible effects. However, it is a very potent reagent for arcane purposes.
+
+wizardry.book.items_blocks.wisdom_sapling.title=Wisdom Sapling
+wizardry.book.items_blocks.wisdom_sapling.content0=Wisdom is a property of magic. It is the innate potential to use mana, the potential to be more than mundane. While you might lack Wisdom, it just so happens that trees soak mana up rather nicely. In the process, they gain Wisdom, and so a standard sapling can be made into a Wisdom Wood Sapling by soaking it in mana.
 
 wizardry.book.items_blocks.wisdom_wood.title=智慧树
 wizardry.book.items_blocks.wisdom_wood.content0=&o正因为智慧树是一种寄生性的，以魔力为养料的树木，它可以被有效地用来制作承载魔力能量的物品。如果能用处理过的智慧木制作学徒斗篷，你就不必大费周章，亲自施法。&r
 wizardry.book.items_blocks.wisdom_wood.content1=只需要将这些原木投入到魔力液中，任何种类的原木都能转化为智慧树原木。
 
+wizardry.book.items_blocks.magicians_worktable.title=Magician's Worktable
+wizardry.book.items_blocks.magicians_worktable.content0=While some are able to create spells on the fly, you will need to plan out what you want your spell to do first. The Magician's Worktable provides a convenient space to map out the behavior, and allows you to easily transfer those plans into the Spellforger's Codex. In doing so, the Codex will reveal the items and order needed to create the spell in the Crafting Altar, in a manner even you should be able to understand. For more in-depth information on how the Worktable functions, go review step 5 of "The 5 Steps to Becoming a Wizard"
+
+wizardry.book.items_blocks.crafting_plate.title=Crafting Plate
+wizardry.book.items_blocks.crafting_plate.content0=The crafting plate is the core of the crafting altar; it holds the ingredients needed to create your spell and infuses them into the nacre pearl using the mana provided. See step 4 of “The 5 Steps To Becoming A Wizard” for a full explanation on how the structure works.
+
+wizardry.book.items_blocks.mana_battery.title=Mana Battery
+wizardry.book.items_blocks.mana_battery.content0=The mana battery is, self-explanatorily, a crystal capable of storing mass amounts of mana. It is created by infusing a diamond with soul sand via devil dust, along with consuming nine source blocks of mana. This combination will form a crystal with the required capabilities, although the input and extraction of mana requires the use of a structure highlighted in part four of “The 5 Steps To Becoming A Wizard.”
+
 wizardry.book.items_blocks.crude_halo.title=粗糙光环
 wizardry.book.items_blocks.crude_halo.content0=&o粗糙光环在神学之中是坏的表现. 而且它的能力远不及天使的恩惠， 它···· 的工作是存储魔力，我是指没有戴上它的情况下。&r
 wizardry.book.items_blocks.crude_halo.content1=如果你喜欢穿戴饰品，你可以把他戴上你的头盔旁边。或者，用它来代替你的头盔。它看上去并没有像它的完全版本那样花哨，但它依然能发挥作用。
 
+wizardry.book.items_blocks.nacre_pearl.title=Nacre Pearl
+wizardry.book.items_blocks.nacre_pearl.content0=Nacre pearls are at the core of a wizard’s arsenal. The structure of these pearls accepts spells readily, and allows you to cast that spell by drawing mana through them. To be able to do so, craft a pearl together with a staff, or press the pearl-swapping key if you have a pearl belt equipped. For more info on Nacre pearls, see the third part of “The 5 Steps To Becoming A Wizard.”
+
+wizardry.book.items_blocks.pearl_belt.title=Pearl Belt
+wizardry.book.items_blocks.pearl_belt.content0=As you have diversified your spells, you have no doubt noticed the inconvenience associated with changing between them. Pulling out the old pearl and putting in the new one wastes valuable time, and carrying many staves around leaves you much less room to work with. There exists an item called the Pearl Belt, which allows you to store nacre pearls for quick and fluid swapping in and out of your staff.<br><br>To add pearls to the belt, simply use the belt, and its imbued magic will tell you the rest of the process. It is quite foolproof, so don't worry. Then, use your pearl-swapping key to swap pearls while holding the staff.
+
 wizardry.book.items_blocks.orbs.title=魔力珠
 wizardry.book.items_blocks.orbs.content0=玻璃珠是用于捕捉珍珠母液与魔力的物品，能够从那些拥有特性力量的液体中获得彩色的炫珠或无价的魔力珠。
 wizardry.book.items_blocks.orbs.content1=魔力珠是通过把玻璃珠丢到魔力液中。 <br> 另一方面炫珠的制作需要很精准。要想得到最好品质的炫珠你可以参考一下一名巫师的篇章里的步骤 3 ：珍珠母。
+wizardry.book.items_blocks.orbs.content2=Wizards who find themselves clumsily stumbling into mana pools on the ground will notice the strange inverse gravity granted to them for a few moments. There is a way to harness this into something useful, however. Putting a small amount of iron into an orb full of mana will filter the liquid, drawing from it the majority of its magical effects, and leaving an Orb of Levitation. The orb will quickly decay, so use it wisely.
+
+wizardry.book.items_blocks.staff.title=Staff
+wizardry.book.items_blocks.staff.content0=A nacre pearl is the lens that shapes mana into your spell, but the staff is the conduit that channels the mana through the pearl. Infused with the Wisdom of the wood it’s made out of, the staff allows you to push mana through the pearl, something a Wisdomless being cannot do without assistance from a tool.
+
+wizardry.book.items_blocks.real_halo.title=Real Halo
+wizardry.book.items_blocks.real_halo.content0=The crude halo allows a taste of power, but mere gold cannot compare to divinity. While true halos can only be acquired by slaying the current wielder, there is a way to make something very very similar. Throw a Nether Star, a bottle of Dragon's Breath, a shard of Prismarine, some Fairy Dust, some Devil Dust, and a unicorn horn into 25 source blocks of mana, and wait.
+wizardry.book.items_blocks.real_halo.content1=The reaction between such powerful reagents will create something that is as close to a real halo as you can get. This halo can hold several times the mana of the Crude Halo and provides passive regen, meaning no more need for mana boosters. Be careful, though, while this halo may be close to a true halo, it is still somewhat physical; its power makes it a prime target for theft by malicious wizards.
+
+wizardry.book.items_blocks.cape.title=Cape
+wizardry.book.items_blocks.cape.content0=A wizard is nothing without looking the part. This is true both literally and figuratively, as with an imitation Halo. A cape is one of the most essential elements of the wizard's garb, and simply wearing one will make magic recognize you as a wizard more readily. But it takes time for the cape to adapt to you, and the longer you wear it, the more efficient it gets. It can reduce the mana strain of casting spells by a factor of four, given enough time to bathe in your essence.<br>Although it doesn't have to be your essence. A cape is a cape, no matter whose it was. As you are likely without much skill or practice, it might be in your best interests to find another wizard's cape, one that has been worn for a long time, to steal.
+
+wizardry.book.items_blocks.syringe.title=Syringes
+wizardry.book.items_blocks.syringe.content0=There are only so many ways to get access to raw magic, and as a being lacking in natural Wisdom, you cannot do it by yourself. And Mana, while useful, doesn't do much to help when outside of a vessel. So, you need a way to get it - the blood of angels - into *your* bloodstream. Injecting it is the most effective way to do so. You should be able to sense how much unused mana you have in your blood, if you're wearing a halo, by directing your focus to the bottom right corner of your vision.
+
+wizardry.book.items_blocks.super_mana_booster.title=ManaBuilder Serum Premium Plus™
+wizardry.book.items_blocks.super_mana_booster.content0=What in the Name gave you the idea to create such a disgusting product? You are mixing things that shouldn’t be mixed! I can’t even imagine why you would want to inject this unholy concoction into your veins...
+
+wizardry.book.items_blocks.vortex_bomb.title=Vortex Bomb
+wizardry.book.items_blocks.vortex_bomb.content0=Devil dust may bring adhesion, but its effects are negligible in its raw form. One of the easiest ways to make effects manifest in dust express themselves is to add gunpowder. Just mix the two and wrap them up in something akin to paper, and you will have a vortex bomb, an explosive that will create a brief, but powerful gravity well. Be warned, the range is very large, so it is not advised to use this near anything you wish to continue existing.
+
+wizardry.book.items_blocks.repulsion_bomb.title=Repulsion Bomb
+wizardry.book.items_blocks.repulsion_bomb.content0=Naturally, the process used in the vortex bomb applies to sky dust as well. Unlike conventional explosives, which do still push you away, this repulsion bomb does not damage anything directly. The surge of power from the gunpowder is converted into a surge of repulsive force, bringing extra force to the shock wave. The range and power, like the vortex bomb, are quite large, so home use is not recommended.
+
+wizardry.book.items_blocks.fairy_wings.title=Fairy Wings
+wizardry.book.items_blocks.fairy_wings.content0=Sometimes, when you break a fairy, it won't fully dissipate, leaving behind an intact pair of wings. Now, before you go thinking you can fly with these things - because that's always the first thing they try - these wings are miniscule, and aren't even capable of truly lifting the fairy, let alone a human. These wings do, however, contain more of the fairy's energy than the dust, and can be used as an ingredient.
+
+wizardry.book.items_blocks.unicorn_horn.title=Unicorn Horn
+wizardry.book.items_blocks.unicorn_horn.content0=Unicorns have notable battle prowess, owing this to their sharp horns. While they are often thought of as having magical healing properties, it is much easier to use them to take life than to give it. Unicorn horns are components for both spells and physical weapons, making them highly valuable.
+
+wizardry.book.items_blocks.unicorn_dagger.title=Unicorn Dagger
+wizardry.book.items_blocks.unicorn_dagger.content0=A unicorn's horn is a powerful healing tool, but to harness that healing power requires incredible knowledge of magic and medicine. Instead, it is much easier to use that power to harm instead of heal. By binding the severed horn with a quartz coating and a golden hilt, and using devil dust to effect the process, the horn becomes a dagger capable of striking with the arcane potency the unicorn once possessed.
+
+wizardry.book.items_blocks.fairy_imbued_apple.title=Fairy Imbued Apple
+wizardry.book.items_blocks.fairy_imbued_apple.content0=It is possible to use alterations of other kinds of magic on our own. The magic which allows Golden Apples is far removed from our arts, but we can apply our own works on that power. By using fairy dust and wings, you can create an apple with the ability to empower you, but instead of the healing gold provides, the apple gives you the freedom and aimlessness of the wispy creatures slaughtered to create it.
+
+wizardry.book.items_blocks.nacre_block.title=Nacre Blocks
+wizardry.book.items_blocks.nacre_block.content0=Nacre has decorative uses as well. When fashioned into a solid cube, it looks quite pretty in addition to being structurally stable enough to not collapse in on itself. It is also solid enough to be fashioned into bricks. These blocks are purely decorative however, and serve no special purpose.
+
+wizardry.book.items_blocks.mana_magnet.title=Mana Magnet
+wizardry.book.items_blocks.mana_magnet.content0=This block currently has no use, but it may have one in the future.
 
 wizardry.book.mobs.fairies.title=精灵
 wizardry.book.mobs.fairies.desc=在哪里找到它们，以及如何纯化它们
@@ -502,4 +573,7 @@ wizardry.book.dimensions.underworld.desc=学习有关下世界的知识
 wizardry.book.dimensions.underworld.content1=<未完成><br>记忆之天使，Zachriel的领域。
 wizardry.book.dimensions.underworld.content2=在这个下世界里生命是很罕见的（毕竟这里是死者的领域），但这里有一些生物<br><WIP>
 wizardry.book.dimensions.underworld.content3=要去下世界，从超过 130 格高的地方跳下直到撞到基岩，你会直接落在下世界的顶部，但最好的情况是，你能够安全地落到这里的云上。
-wizardry.book.dimensions.underworld.content4=要从下世界回来，跳到这里的虚空中，你会直接进入到主世界的顶部。
+
+wizardry.book.dimensions.torikki.title=Torikki
+wizardry.book.dimensions.torikki.desc=Learn about Torikki
+wizardry.book.dimensions.torikki.content0=Do not come here, it’s incomplete,<br> ---------- <br>There’s no way to get there unless you cheat.<br> ---------- <br>Don’t let your curiosity lead you down this path,<br> ---------- <br>All that awaits is file corruption and wrath.
