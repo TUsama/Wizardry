@@ -46,6 +46,8 @@ import static com.teamwizardry.wizardry.client.gui.worktable.WorktableGui.*;
 
 public class TableModule extends GuiComponent {
 
+	private static final Color effectColor = new Color(255, 102, 79);
+
 	private boolean errored = false;
 
 	@Nonnull
@@ -356,6 +358,7 @@ public class TableModule extends GuiComponent {
 		BufferBuilder vb = tessellator.getBuffer();
 		vb.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 		Vec2d lastPoint = null;
+
 		for (int i = 0; i < list.size() - 1; i++) {
 			Vec2d point = list.get(i);
 			if (lastPoint == null) {
@@ -374,12 +377,21 @@ public class TableModule extends GuiComponent {
 				wire = 256.0f / 27.0f * (z * z * z - z * z * z * z);
 			}
 
-			float r = lerp(primary.getRed(), secondary.getRed(), wire) / 255f;
-			float g = lerp(primary.getGreen(), secondary.getGreen(), wire) / 255f;
-			float b = lerp(primary.getBlue(), secondary.getBlue(), wire) / 255f;
+//			float r = lerp(primary.getRed(), secondary.getRed(), wire) / 255f;
+//			float g = lerp(primary.getGreen(), secondary.getGreen(), wire) / 255f;
+//			float b = lerp(primary.getBlue(), secondary.getBlue(), wire) / 255f;
 
-			Vec2d normal = point.sub(lastPoint).normalize();
-			Vec2d perp = new Vec2d(-normal.getYf(), normal.getXf()).mul((1.0f - 2.0f * Math.abs(dist - 0.5f) + 0.3f));
+			float[] primaryHsv = Color.RGBtoHSB(primary.getRed(), primary.getBlue(), primary.getGreen(), null);
+			float[] secondaryHsv = Color.RGBtoHSB(secondary.getRed(), secondary.getBlue(), secondary.getGreen(), null);
+
+			int rgb = Color.HSBtoRGB(lerp(primaryHsv[0], secondaryHsv[0], wire), primaryHsv[1], primaryHsv[2]);
+
+			float r = ((rgb >> 16) & 0xFF) / 255f;
+			float g = ((rgb >> 8) & 0xFF) / 255f;
+			float b = (rgb & 0xFF) / 255f;
+
+			Vec2d normal = point.sub(lastPoint);
+			Vec2d perp = new Vec2d(-normal.getYf(), normal.getXf()).mul(1.0f - 2.0f * Math.abs(dist - 0.5f) + 0.3f);
 			Vec2d point1 = lastPoint.sub(normal.mul(0.5)).add(perp);
 			Vec2d point2 = point.add(normal.mul(0.5)).add(perp);
 			Vec2d point3 = point.add(normal.mul(0.5)).sub(perp);
@@ -392,6 +404,7 @@ public class TableModule extends GuiComponent {
 
 			lastPoint = point;
 		}
+
 		tessellator.draw();
 
 		GlStateManager.translate(0, 0, 10);
@@ -410,7 +423,7 @@ public class TableModule extends GuiComponent {
 			case SHAPE:
 				return Color.CYAN;
 			case EFFECT:
-				return Color.ORANGE;
+				return effectColor;
 			case MODIFIER:
 				return Color.GREEN;
 			default:
